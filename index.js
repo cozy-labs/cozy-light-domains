@@ -1,8 +1,11 @@
 var fs = require('fs');
 var path = require('path');
-var serveStatic = require ('serve-static');
+var serveStatic = require('serve-static');
 
 
+/*
+ * Returns proper config file to handle domain attributes.
+ */
 var getConfig = function () {
   var config = module.config;
 
@@ -13,7 +16,14 @@ var getConfig = function () {
   return config;
 };
 
+
 var configHelpers = {
+
+  /*
+   * Add a key/value domain/appName to the domains config attribute.
+   * @param domain The domain to link.
+   * @param app The app to link to given domain.
+   */
   addDomain: function (domain, app) {
     var config = getConfig();
     config.domains[domain] = app;
@@ -21,6 +31,10 @@ var configHelpers = {
       module.configPath, JSON.stringify(config, null, 2));
   },
 
+  /*
+   * Remove a key/value domain/appName to the domains config attribute.
+   * @param domain The domain to unlink.
+   */
   removeDomain: function (domain) {
     var config = getConfig();
     delete config.domains[domain];
@@ -30,20 +44,36 @@ var configHelpers = {
 }
 
 
-var addDomainToConfig = function (domain, app) {
-  configHelpers.addDomain(domain, app);
-  console.log(domain + ' configured.');
-}
+
+var commands = {
+  /*
+   * Add a key/value domain/appName to the domains attribute of the config
+   * file.
+   * @param domain The domain to link.
+   * @param app The app to link to given domain.
+   */
+  addDomainToConfig: function (domain, app) {
+    configHelpers.addDomain(domain, app);
+    console.log(domain + ' configured.');
+  },
 
 
-var removeDomainFromConfig = function (domain) {
-  configHelpers.removeDomain(domain);
-  console.log(domain + ' removed from configuration.');
-}
+  /*
+   * Remove a key/value domain/appName to the domains attribute of the config
+   * file.
+   * @params domain The domain to unlink.
+   */
+  removeDomainFromConfig: function (domain) {
+    configHelpers.removeDomain(domain);
+    console.log(domain + ' removed from configuration.');
+  }
+};
 
 
 module.exports = {
 
+  // Serve static pages from a HTML5 app when the domain is link to that HTML5
+  // app.
   configureAppServer: function(app, config, routes, callback) {
     var config = getConfig();
     var home = module.home;
@@ -72,8 +102,8 @@ module.exports = {
     callback();
   },
 
-
-  configure = function (options, config, program) {
+  // Set commands on the Cozy Light program.
+  configure: function (options, config, program) {
     module.config = config;
     module.home = options.home;
     module.configPath = options.config_path;
@@ -81,11 +111,11 @@ module.exports = {
     program
       .command('link-domain <domain> <app>')
       .description('Make a link displaying target app.')
-      .action(addDomainToConfig);
+      .action(commands.addDomainToConfig);
 
     program
       .command('unlink-domain <domain>')
         .description('Link a domain to an app.')
-      .action(removeDomainFromConfig);
+      .action(commands.removeDomainFromConfig);
   }
 };
