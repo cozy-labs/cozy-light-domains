@@ -79,6 +79,7 @@ module.exports = {
     var home = module.home;
 
     app.use(function (req, res, next) {
+      isHandled = false;
       var domain = req.headers.host;
 
       if (domain !== undefined) {
@@ -87,17 +88,28 @@ module.exports = {
         if (appName !== undefined) {
           var app = config.apps[appName];
 
+          isHandled = true;
           if (app.type === "static") {
             var appPath = path.join(home, 'node_modules', app.name);
             var serve = serveStatic(
               appPath, {'index': ['index.html', 'index.htm']});
 
-            return serve(req, res, function() {});
+            serve(req, res, function() {});
+          } else {
+            var appName = app.name;
+            var port = routes[appName];
+            if (port !== null) {
+              module.proxy.web(req, res, { target: "http://localhost:" + port });
+            } else {
+              res.send(404);
+            }
           };
         }
       };
 
-      next();
+      if (!isHandled) {
+        next();
+      };
     });
     callback();
   },
@@ -107,6 +119,7 @@ module.exports = {
     module.config = config;
     module.home = options.home;
     module.configPath = options.config_path;
+    module.proxy = options.proxy;
 
     program
       .command('link-domain <domain> <app>')
