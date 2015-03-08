@@ -123,12 +123,13 @@ module.exports = {
 
     program
       .command('link-domain <domain> <app>')
-      .description('Make a link displaying target app.')
+      .description('Link given domain to given app. Access to Cozy Light '
+                   + 'through this domain will lead directly to the app. ')
       .action(commands.addDomainToConfig);
 
     program
       .command('unlink-domain <domain>')
-        .description('Link a domain to an app.')
+      .description('Remove the link between a domain and an app.')
       .action(commands.removeDomainFromConfig);
   }
 };
